@@ -1,20 +1,38 @@
 'use client'
 
 import { useState } from 'react'
+import { useMutation } from '@tanstack/react-query'
+
+async function createBooking(data: {
+  clientName: string
+  clientEmail: string
+  date: string
+  time: string
+}) {
+  const res = await fetch('/api/bookings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  return res.json()
+}
 
 export default function BookingPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [date, setDate] = useState('')
   const [time, setTime] = useState('')
-  const [submitted, setSubmitted] = useState(false)
+
+  const mutation = useMutation({
+    mutationFn: createBooking,
+  })
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setSubmitted(true)
+    mutation.mutate({ clientName: name, clientEmail: email, date, time })
   }
 
-  if (submitted) {
+  if (mutation.isSuccess) {
     return (
       <main className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
         <div className="bg-white rounded-xl shadow p-8 text-center max-w-md w-full">
@@ -75,9 +93,10 @@ export default function BookingPage() {
           </div>
           <button
             type="submit"
+            disabled={mutation.isPending}
             className="w-full bg-blue-600 text-white rounded-lg py-2 font-semibold hover:bg-blue-700 transition"
           >
-            Book Now
+            {mutation.isPending ? 'Booking...' : 'Book Now'}
           </button>
         </form>
       </div>
