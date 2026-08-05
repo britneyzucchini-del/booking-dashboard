@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+﻿import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL as string,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
 type BookingPayload = {
@@ -21,7 +21,6 @@ export async function GET() {
 
 export async function POST(request: Request) {
   let payload: BookingPayload
-
   try {
     const body: unknown = await request.json()
     if (!body || typeof body !== "object" || Array.isArray(body)) {
