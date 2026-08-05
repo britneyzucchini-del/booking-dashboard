@@ -14,7 +14,13 @@ async function createBooking(data: {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   })
-  return res.json()
+  const result = await res.json()
+
+  if (!res.ok) {
+    throw new Error(result.error ?? 'Unable to create booking')
+  }
+
+  return result
 }
 
 export default function BookingPage() {
@@ -49,6 +55,11 @@ export default function BookingPage() {
       <div className="bg-white rounded-xl shadow p-8 max-w-md w-full">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Book an Appointment</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {mutation.isError && (
+            <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700" role="alert">
+              {mutation.error.message}
+            </p>
+          )}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
             <input
