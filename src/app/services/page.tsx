@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useQuery } from '@tanstack/react-query'
 import type { Service } from '@/types'
@@ -54,7 +54,7 @@ export default function ServicesPage() {
                   <span>{formatDuration(service.duration)}</span>
                   <span className="font-semibold text-gray-900">{formatPrice(service.price)}</span>
                 </div>
-                
+                <a
                   href={`/booking?service=${encodeURIComponent(service.id)}`}
                   className="block text-center bg-blue-600 text-white rounded-lg py-2 hover:bg-blue-700 transition"
                 >
