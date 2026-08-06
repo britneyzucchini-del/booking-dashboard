@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server"
+﻿import { NextResponse } from "next/server"
 import Anthropic from "@anthropic-ai/sdk"
 
 const anthropic = new Anthropic({
@@ -70,7 +70,7 @@ export async function POST(request: Request) {
   const dealsSummary = deals
     .map(
       (d, i) =>
-        `${i + 1}. ${d.company} — $${d.dealSize.toLocaleString()} — Stage: ${d.stage} — ${d.daysInStage} days in current stage — Last activity: ${d.lastActivityDays} days ago`
+        `${i + 1}. ${d.company} â€” $${d.dealSize.toLocaleString()} â€” Stage: ${d.stage} â€” ${d.daysInStage} days in current stage â€” Last activity: ${d.lastActivityDays} days ago`
     )
     .join("\n")
 
@@ -94,7 +94,7 @@ Respond with ONLY valid JSON, no markdown formatting, no code fences, matching t
 
   try {
     const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-5",
+      model: "claude-sonnet-5",
       max_tokens: 1500,
       messages: [{ role: "user", content: prompt }],
     })
