@@ -57,7 +57,8 @@ export default function ServicesPage() {
                   <span className="font-semibold text-gray-900">{formatPrice(service.price)}</span>
                 </div>
                 
-                  href={`/booking?service=${encodeURIComponent(service.id)}`}
+                  <a                
+                    href={`/booking?service=${encodeURIComponent(service.id)}`}
                   className="block text-center bg-blue-600 text-white rounded-lg py-2 hover:bg-blue-700 transition"
                 >
                   Book Now
