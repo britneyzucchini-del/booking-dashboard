@@ -1,8 +1,9 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import HomeButton from '@/components/HomeButton'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -25,7 +26,9 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
-      <div className="bg-white rounded-xl shadow p-8 max-w-md w-full">
+      <div className="max-w-md w-full">
+        <HomeButton />
+        <div className="bg-white rounded-xl shadow p-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Admin Login</h1>
         {error && <p className="text-red-500 mb-4">{error}</p>}
         <form onSubmit={handleLogin} className="space-y-4">
@@ -58,6 +61,7 @@ export default function LoginPage() {
             Login
           </button>
         </form>
+        </div>
       </div>
     </main>
   )

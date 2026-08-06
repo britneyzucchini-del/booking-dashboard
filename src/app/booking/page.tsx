@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
+import HomeButton from '@/components/HomeButton'
 
 async function createBooking(data: {
   clientName: string
@@ -52,65 +53,10 @@ export default function BookingPage() {
 
   return (
     <main className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
-      <div className="bg-white rounded-xl shadow p-8 max-w-md w-full">
+      <div className="max-w-md w-full">
+        <HomeButton />
+        <div className="bg-white rounded-xl shadow p-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Book an Appointment</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           {mutation.isError && (
-            <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700" role="alert">
-              {mutation.error.message}
-            </p>
-          )}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-            <input
-              type="text"
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2"
-              placeholder="Jane Smith"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2"
-              placeholder="jane@example.com"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-            <input
-              type="date"
-              required
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Time</label>
-            <input
-              type="time"
-              required
-              value={time}
-              onChange={(e) => setTime(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={mutation.isPending}
-            className="w-full bg-blue-600 text-white rounded-lg py-2 font-semibold hover:bg-blue-700 transition"
-          >
-            {mutation.isPending ? 'Booking...' : 'Book Now'}
-          </button>
-        </form>
-      </div>
-    </main>
-  )
-}
+            <p className="rounded-lg bg-red-50 p-3

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import HomeButton from '@/components/HomeButton'
 
 type Deal = {
   company: string
@@ -106,6 +107,7 @@ export default function DealRiskPage() {
   return (
     <main className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-5xl mx-auto">
+        <HomeButton />
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Deal Risk Analyzer</h1>
         <p className="text-gray-600 mb-8">
           Enter your open pipeline and get an AI-generated read on which deals are at risk of stalling.
