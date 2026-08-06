@@ -42,6 +42,64 @@ function isValidDeal(value: unknown): value is Deal {
   )
 }
 
+function analyzeDealsLocally(deals: Deal[]): { summary: string; deals: DealAnalysis[] } {
+  const analyzed: DealAnalysis[] = deals.map((d) => {
+    let score = 0
+    const reasons: string[] = []
+
+    if (d.lastActivityDays >= 21) {
+      score += 3
+      reasons.push(`no activity in ${d.lastActivityDays} days`)
+    } else if (d.lastActivityDays >= 10) {
+      score += 2
+      reasons.push(`activity has slowed (${d.lastActivityDays} days since last touch)`)
+    } else if (d.lastActivityDays >= 5) {
+      score += 1
+    }
+
+    if (d.daysInStage >= 30) {
+      score += 3
+      reasons.push(`stuck in ${d.stage} for ${d.daysInStage} days`)
+    } else if (d.daysInStage >= 14) {
+      score += 2
+      reasons.push(`${d.daysInStage} days in ${d.stage}, longer than typical`)
+    } else if (d.daysInStage >= 7) {
+      score += 1
+    }
+
+    if (d.dealSize >= 50000 && score >= 2) {
+      score += 1
+      reasons.push("large deal size raises the stakes if it slips")
+    }
+
+    let riskLevel: DealAnalysis["riskLevel"]
+    if (score >= 4) riskLevel = "high"
+    else if (score >= 2) riskLevel = "medium"
+    else riskLevel = "low"
+
+    const reason =
+      reasons.length > 0
+        ? `${reasons[0].charAt(0).toUpperCase()}${reasons[0].slice(1)}${reasons.length > 1 ? `; ${reasons.slice(1).join("; ")}` : ""}.`
+        : `Healthy pace for the ${d.stage} stage.`
+
+    return { company: d.company, riskLevel, reason }
+  })
+
+  const highCount = analyzed.filter((d) => d.riskLevel === "high").length
+  const mediumCount = analyzed.filter((d) => d.riskLevel === "medium").length
+
+  let summary: string
+  if (highCount === 0 && mediumCount === 0) {
+    summary = `All ${deals.length} deals are progressing normally with no signs of stalling. Pipeline health looks strong.`
+  } else if (highCount === 0) {
+    summary = `${mediumCount} of ${deals.length} deals show early warning signs of slowing down, but nothing critical yet. Worth a check-in on those.`
+  } else {
+    summary = `${highCount} of ${deals.length} deals are at high risk of stalling, mainly due to long gaps in activity or extended time in stage. These need attention soon to avoid slipping out of the quarter.`
+  }
+
+  return { summary, deals: analyzed }
+}
+
 export async function POST(request: Request) {
   let payload: DealsPayload
 
@@ -70,7 +128,7 @@ export async function POST(request: Request) {
   const dealsSummary = deals
     .map(
       (d, i) =>
-        `${i + 1}. ${d.company} â€” $${d.dealSize.toLocaleString()} â€” Stage: ${d.stage} â€” ${d.daysInStage} days in current stage â€” Last activity: ${d.lastActivityDays} days ago`
+        `${i + 1}. ${d.company} — $${d.dealSize.toLocaleString()} — Stage: ${d.stage} — ${d.daysInStage} days in current stage — Last activity: ${d.lastActivityDays} days ago`
     )
     .join("\n")
 
@@ -92,6 +150,9 @@ Respond with ONLY valid JSON, no markdown formatting, no code fences, matching t
   ]
 }`
 
+  let parsed: { summary: string; deals: DealAnalysis[] }
+  let usedFallback = false
+
   try {
     const message = await anthropic.messages.create({
       model: "claude-sonnet-5",
@@ -105,22 +166,26 @@ Respond with ONLY valid JSON, no markdown formatting, no code fences, matching t
     }
 
     const cleaned = textBlock.text.replace(/```json|```/g, "").trim()
-    const parsed = JSON.parse(cleaned) as { summary: string; deals: DealAnalysis[] }
-
-    const atRiskValue = deals
-      .filter((_, i) => parsed.deals[i]?.riskLevel === "high")
-      .reduce((sum, d) => sum + d.dealSize, 0)
-
-    const result: AnalysisResult = {
-      summary: parsed.summary,
-      totalPipelineValue,
-      atRiskValue,
-      deals: parsed.deals,
-    }
-
-    return NextResponse.json(result)
+    parsed = JSON.parse(cleaned) as { summary: string; deals: DealAnalysis[] }
   } catch (error) {
-    console.error("Deal analysis failed:", error)
-    return NextResponse.json({ error: "Failed to analyze deals" }, { status: 500 })
+    // AI call failed (billing, network, rate limit, etc.) — fall back to a
+    // deterministic local analysis so the tool still works end-to-end.
+    console.error("AI analysis failed, using local fallback:", error)
+    parsed = analyzeDealsLocally(deals)
+    usedFallback = true
   }
+
+  const atRiskValue = deals
+    .filter((_, i) => parsed.deals[i]?.riskLevel === "high")
+    .reduce((sum, d) => sum + d.dealSize, 0)
+
+  const result: AnalysisResult & { usedFallback: boolean } = {
+    summary: parsed.summary,
+    totalPipelineValue,
+    atRiskValue,
+    deals: parsed.deals,
+    usedFallback,
+  }
+
+  return NextResponse.json(result)
 }
